@@ -1,0 +1,6 @@
+paths:
+  input_dir: "data/input"
+  output_dir: "data/output"
+
+api:
+  enabled: true
