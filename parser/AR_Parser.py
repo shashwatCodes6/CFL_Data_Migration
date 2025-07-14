@@ -1,22 +1,19 @@
 from parser.base_parser import BaseParser
+from payload.AR_Invoice import ARInvoice
 
-class ARParser(BaseParser):
+class ARInvoiceParser(BaseParser):
+    def __init__(self, dataframe):
+        self.df = dataframe
+
     def parse(self):
-        df = self.read_excel()
-        df.columns = df.iloc[0]          
-        df = df.drop(df.index[0])   
-        df.reset_index(drop=True, inplace=True)
+        if self.df.empty:
+            raise ValueError("Sheet is empty.")
+        
+        df = self.df
+        
+        grouped = df.groupby(["Legal Entity", "Invoice Number"]).agg(list).reset_index()
+        data = grouped.to_dict(orient="records")
+        ARInvoicePayloadGen = ARInvoice()
+        payload = ARInvoicePayloadGen.generate(data)
 
-        grouped = df.groupby(["name", "Id"]).agg(list).reset_index()
-
-        data = []
-        for _, row in grouped.iterrows():
-            item = {
-                "name": row["name"],
-                "id": row["Id"],
-                "address": row["address"],
-                "notes": row["notes"],
-            }
-            data.append(item)
-
-        return data
+        return payload

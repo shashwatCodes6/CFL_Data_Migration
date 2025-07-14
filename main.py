@@ -2,14 +2,22 @@ import os
 import glob
 import json
 from utils.config_loader import load_config
-from parser.AR_Parser import ARParser
+from parser.AR_Parser import ARInvoiceParser
 from parser.base_parser import BaseParser
+import pandas as pd
 
 config = load_config()
 
 PARSER_MAP = {
-    "AR": ARParser,
+    "AR": ARInvoiceParser,
 }
+
+def detect_parser_by_sheet(sheet_name):
+    for keyword, parser_class in PARSER_MAP.items():
+        if keyword in sheet_name:
+            return parser_class
+    return None
+
 
 def detect_parser(file_path) -> BaseParser | ValueError:
     """Detect parser based on filename or config logic."""
@@ -23,24 +31,48 @@ def main():
     output_dir = config["paths"]["output_dir"]
 
     os.makedirs(output_dir, exist_ok=True)
-    
-    files = glob.glob(os.path.join(input_dir, "*.xlsx"))
-    for file_path in files:
+
+    for file_name in os.listdir(input_dir):
+        if not file_name.endswith(".xlsx"):
+            continue
+
+        file_path = os.path.join(input_dir, file_name)
+        print(f"Opening Excel file: {file_path}")
+
         try:
-            parser_class = detect_parser(file_path)
-            parser = parser_class(file_path)
-            payload = parser.parse()
-            
-            output_file = os.path.join(output_dir, os.path.basename(file_path).replace(".xlsx", ".json"))
-            with open(output_file, "w") as f:
-                json.dump(payload, f, indent=2)
-            
-            # if config["api"]["enabled"]:
-            #     response = post_payload(payload)
-            #     logger.info(f"API response: {response.status_code} - {response.text}")
+            # Get sheet names first
+            xl = pd.ExcelFile(file_path, engine="openpyxl")
+            sheet_names = xl.sheet_names
+
+            for sheet_name in sheet_names:
+                print(f"Processing sheet: {sheet_name}")
+                parser_class = detect_parser_by_sheet(sheet_name)
+
+                if not parser_class:
+                    print(f"No parser found for sheet: {sheet_name}")
+                    continue
+
+                df = xl.parse(sheet_name)
+                if df.empty:
+                    print(f"Skipping empty sheet: {sheet_name}")
+                    continue
+
+                parser = parser_class(df)
+                parsed_data = parser.parse()
+
+                output_file = os.path.join(
+                    output_dir,
+                    f"{os.path.splitext(file_name)[0]}_{sheet_name}.json"
+                )
+
+                with open(output_file, "w") as f:
+                    json.dump(parsed_data, f, indent=2)
+                print(f"Saved payload to: {output_file}")
+
 
         except Exception as e:
             print(f"Failed processing {file_path}: {str(e)}")
+
 
 if __name__ == "__main__":
     main()
