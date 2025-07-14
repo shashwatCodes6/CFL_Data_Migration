@@ -13,4 +13,5 @@ class ARInvoice():
             except Exception as e:
                 print(f"Exception {e} on record {entry["Legal Entity"]}, {entry["Invoice Number"]}")
 
+        print ("Hello world")
         return res
