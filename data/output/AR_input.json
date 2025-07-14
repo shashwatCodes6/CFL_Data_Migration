@@ -2,9 +2,7 @@
   {
     "name": "rohit",
     "id": 234,
-    "address": [
-      "Bangalore"
-    ],
+    "address": "Bangalore",
     "notes": [
       "First note"
     ]
@@ -12,10 +10,7 @@
   {
     "name": "shashwat",
     "id": 123,
-    "address": [
-      "Kalkaji",
-      "Kalkaji"
-    ],
+    "address": "Kalkaji",
     "notes": [
       "First note",
       "Second note"
@@ -24,9 +19,7 @@
   {
     "name": "virat",
     "id": 345,
-    "address": [
-      "Mumbai"
-    ],
+    "address": "Mumbai",
     "notes": [
       "First note"
     ]
