@@ -4,3 +4,22 @@ paths:
 
 api:
   enabled: true
+
+segment_mapping:
+  DPWG_COA:
+    LEGAL_ENTITY: "Legal Entity"
+    BUSINESS_UNIT: "Business Unit"
+    LOCATION: "Location"
+    INTERCOMPANY_CODE: "Inter Company"
+    MISCELLANEOUS1_CODE: "Miscellaneous"
+    MISCELLANEOUS2_CODE: "Cost Centre"
+    MISCELLANEOUS3_CODE: "Service"
+    MISCELLANEOUS4_CODE: "Analysis"
+    MISCELLANEOUS5_CODE: "null"
+    MISCELLANEOUS6_CODE: "null"
+    MISCELLANEOUS7_CODE: "null"
+    MISCELLANEOUS8_CODE: "null"
+    MISCELLANEOUS9_CODE: "null"
+    MISCELLANEOUS10_CODE: "null"
+
+coa_code: "DPWG_COA"

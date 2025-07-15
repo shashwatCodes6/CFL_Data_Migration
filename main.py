@@ -52,7 +52,7 @@ def main():
                     print(f"No parser found for sheet: {sheet_name}")
                     continue
 
-                df = xl.parse(sheet_name)
+                df = xl.parse(sheet_name, dtype=str)
                 if df.empty:
                     print(f"Skipping empty sheet: {sheet_name}")
                     continue

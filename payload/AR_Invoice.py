@@ -1,49 +1,62 @@
 import uuid
 from datetime import datetime
 import pandas as pd
+from utils.config_loader import load_config
+
+config = load_config()
 
 class ARInvoice():
     def date_to_epoch(self, date_value):
         if pd.isna(date_value):
             return None
         return int(pd.to_datetime(date_value, dayfirst=True).timestamp() * 1000)  # milliseconds
+    
+    
+    def _get_value(self, entry, key, index=0):
+        """Helper method to safely get values from entry, preserving original string representation"""
+        value = entry.get(key)
+        if value is None:
+            return ""
+        
+        # Handle numpy nan values
+        if isinstance(value, (list, np.ndarray)):
+            if len(value) > index:
+                val = value[index]
+                return "" if pd.isna(val) else str(val)
+            return ""
+        
+        # Handle scalar values (like LEGAL_ENTITY in your case)
+        if index == 0:
+            return "" if pd.isna(value) else str(value)
+        return ""
+    
 
     def generate(self, parsed_data):
         payloads = []
-        print(parsed_data)
+
+        # Coa Code to be fetched
+        coa_code = config['coa_code'] if config['coa_code'] != "" else "DPWG_COA"
+            
 
         for entry in parsed_data:
             validation_uuid = str(uuid.uuid4())
 
             # SEGMENTS
-            segment_mapping = {
-                "LEGAL_ENTITY": "Legal Entity",
-                "BUSINESS_UNIT": "Business Unit",
-                "LOCATION": "Location",
-                "INTERCOMPANY_CODE": "Inter Company",
-                "MISCELLANEOUS1_CODE": "Miscellaneous",
-                "MISCELLANEOUS2_CODE": "Cost Centre",
-                "MISCELLANEOUS3_CODE": "Service",
-                "MISCELLANEOUS4_CODE": "Analysis",
-                "MISCELLANEOUS5_CODE": "null",
-                "MISCELLANEOUS6_CODE": "null",
-                "MISCELLANEOUS7_CODE": "null",
-                "MISCELLANEOUS8_CODE": "null",
-                "MISCELLANEOUS9_CODE": "null",
-                "MISCELLANEOUS10_CODE": "null"
-            }
-
+            segment_mapping = config['segment_mapping'][coa_code]
 
             segments = []
             for segment_name, column_name in segment_mapping.items():
                 if column_name != "null":
-                    code_value = entry.get(segment_name, [""])[0]
-                    print(segment_name, code_value)
+                    code_value = entry.get(segment_name, [""])
+                    print(segment_name, column_name, code_value, entry[segment_name])
                     if code_value:
+                        if isinstance(code_value, list):
+                            code_value = code_value[0]
+                        
                         segments.append({
                             "validationUUID": str(uuid.uuid4()),
                             "name": column_name,
-                            "code": code_value 
+                            "code": code_value
                         })
 
             # BASIC INFO
@@ -64,11 +77,12 @@ class ARInvoice():
                 "notes": entry.get("Notes", [""])[0],
                 "currency": entry.get("Currency", [""])[0],
                 "paymentTerm": entry.get("Payment Term", [""])[0] if "Payment Term" in entry else "",
-                "invoiceLineDetails": []
+                "invoiceLineDetails": [], 
+                "accessIdentifierCodes": {}
             }
 
             # MULTIPLE LINE HANDLING
-            num_lines = len(entry.get("Item", []))
+            num_lines = len(entry.get("Line", []))
             for i in range(num_lines):
                 line_uuid = str(uuid.uuid4())
                 tax_override_flag = entry.get("Is tax overriden", ["false"] * num_lines)[i]
@@ -76,12 +90,14 @@ class ARInvoice():
 
                 tax_rule = {
                     "validationUUID": line_uuid,
-                    "isTaxOverRidden": tax_override_flag == "TRUE",
+                    "isTaxOverRidden": str(tax_override_flag).lower(),
                     "taxRuleName": entry.get("Tax Rule", [""])[i]
                 }
 
                 # Only add override amount if overridden
-                if tax_rule["isTaxOverRidden"]:
+                print(type(tax_override_flag))
+                tax_rule["taxOverRiddenAmount"] = ""
+                if tax_rule["isTaxOverRidden"] == "true":
                     tax_rule["taxOverRiddenAmount"] = tax_overridden_amount
 
                 line = {
@@ -98,6 +114,14 @@ class ARInvoice():
                 }
 
                 payload["invoiceLineDetails"].append(line)
+
+
+            payload["accessIdentifierCodes"] = {
+                "coaCode": coa_code,
+                "legalEntityCode": entry.get("LEGAL_ENTITY", [""])[0],
+                "businessUnitCode": entry.get("BUSINESS_UNIT", [""])[0],
+                "locationCode": entry.get("LOCATION", [""])[0]
+            }
 
             payloads.append(payload)
 
