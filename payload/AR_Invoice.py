@@ -1,6 +1,7 @@
 import uuid
 from datetime import datetime
 import pandas as pd
+import numpy as np
 from utils.config_loader import load_config
 
 config = load_config()
@@ -9,7 +10,7 @@ class ARInvoice():
     def date_to_epoch(self, date_value):
         if pd.isna(date_value):
             return None
-        return int(pd.to_datetime(date_value, dayfirst=True).timestamp() * 1000)  # milliseconds
+        return str(int(pd.to_datetime(date_value, dayfirst=True).timestamp() * 1000))  # milliseconds
     
     
     def _get_value(self, entry, key, index=0):
@@ -34,16 +35,12 @@ class ARInvoice():
     def generate(self, parsed_data):
         payloads = []
 
-        # Coa Code to be fetched
         coa_code = config['coa_code'] if config['coa_code'] != "" else "DPWG_COA"
-            
 
         for entry in parsed_data:
             validation_uuid = str(uuid.uuid4())
 
-            # SEGMENTS
             segment_mapping = config['segment_mapping'][coa_code]
-
             segments = []
             for segment_name, column_name in segment_mapping.items():
                 if column_name != "null":
@@ -59,68 +56,63 @@ class ARInvoice():
                             "code": code_value
                         })
 
-            # BASIC INFO
             payload = {
                 "validationUUID": validation_uuid,
                 "invoiceType": "AR",
                 "segments": segments,
-                "transactionSource": entry.get("Transaction Source", [""])[0],
-                "transactionTypeName": entry.get("Transaction Type", [""])[0],
-                "invoiceNumber": entry.get("Invoice Number", [""])[0],
-                "orderRefNo": entry.get("Order Reference Number", [""])[0],
-                "invoiceDateEpoch": self.date_to_epoch(entry.get("Invoice Date", [None])[0]),
-                "accountingDateEpoch": self.date_to_epoch(entry.get("Accounting date", [None])[0]),
-                "partyID": entry.get("Customer", [""])[0],
-                "billToSite": entry.get("Bill to", [""])[0],
-                "shipToSite": entry.get("Ship to", [""])[0],
-                "dueDateEpoch": self.date_to_epoch(entry.get("Due Date", [None])[0]),
-                "notes": entry.get("Notes", [""])[0],
-                "currency": entry.get("Currency", [""])[0],
-                "paymentTerm": entry.get("Payment Term", [""])[0] if "Payment Term" in entry else "",
+                "transactionSource": self._get_value(entry, "Transaction Source"),
+                "transactionTypeName": self._get_value(entry, "Transaction Type"),
+                "invoiceNumber": self._get_value(entry, "Invoice Number"),
+                "orderRefNo": self._get_value(entry, "Order Reference Number"),
+                "invoiceDateEpoch": self.date_to_epoch(self._get_value(entry, "Invoice Date", 0)),
+                "accountingDateEpoch": self.date_to_epoch(self._get_value(entry, "Accounting date", 0)),
+                "partyID": self._get_value(entry, "Customer"),
+                "billToSite": self._get_value(entry, "Bill to"),
+                "shipToSite": self._get_value(entry, "Ship to"),
+                "dueDateEpoch": self.date_to_epoch(self._get_value(entry, "Due Date", 0)),
+                "notes": self._get_value(entry, "Notes"),
+                "currency": self._get_value(entry, "Currency"),
+                "paymentTerm": self._get_value(entry, "Payment Term") if "Payment Term" in entry else "",
                 "invoiceLineDetails": [], 
                 "accessIdentifierCodes": {}
             }
 
-            # MULTIPLE LINE HANDLING
             num_lines = len(entry.get("Line", []))
             for i in range(num_lines):
                 line_uuid = str(uuid.uuid4())
-                tax_override_flag = entry.get("Is tax overriden", ["false"] * num_lines)[i]
-                tax_overridden_amount = entry.get("Tax over ridden amount", [""] * num_lines)[i]
+                tax_override_flag = self._get_value(entry, "Is tax overriden", i)
+                tax_overridden_amount = self._get_value(entry, "Tax over ridden amount", i)
 
                 tax_rule = {
                     "validationUUID": line_uuid,
                     "isTaxOverRidden": str(tax_override_flag).lower(),
-                    "taxRuleName": entry.get("Tax Rule", [""])[i]
+                    "taxRuleName": self._get_value(entry, "Tax Rule", i)
                 }
 
-                # Only add override amount if overridden
-                print(type(tax_override_flag))
                 tax_rule["taxOverRiddenAmount"] = ""
                 if tax_rule["isTaxOverRidden"] == "true":
                     tax_rule["taxOverRiddenAmount"] = tax_overridden_amount
 
                 line = {
                     "validationUUID": line_uuid,
-                    "itemName": entry.get("Item", [""])[i],
-                    "description": entry.get("Line Description", [""])[i],
-                    "lineRuleName": entry.get("Revenue Rule", [""])[i],
-                    "uomName": entry.get("UOM", [""])[i],
-                    "quantity": entry.get("Quantity", [""])[i],
-                    "unitPrice": entry.get("Unit Price", [""])[i],
-                    "discountPercentage": entry.get("Discount %", [""])[i],
+                    "itemName": self._get_value(entry, "Item", i),
+                    "description": self._get_value(entry, "Line Description", i),
+                    "lineRuleName": self._get_value(entry, "Revenue Rule", i),
+                    "uomName": self._get_value(entry, "UOM", i),
+                    "quantity": self._get_value(entry, "Quantity", i),
+                    "unitPrice": self._get_value(entry, "Unit Price", i),
+                    "discountPercentage": self._get_value(entry, "Discount %", i),
                     "taxRules": [tax_rule],
                     "activeStatus": "ACTIVE"
                 }
 
                 payload["invoiceLineDetails"].append(line)
 
-
             payload["accessIdentifierCodes"] = {
                 "coaCode": coa_code,
-                "legalEntityCode": entry.get("LEGAL_ENTITY", [""])[0],
-                "businessUnitCode": entry.get("BUSINESS_UNIT", [""])[0],
-                "locationCode": entry.get("LOCATION", [""])[0]
+                "legalEntityCode": self._get_value(entry, "LEGAL_ENTITY"),
+                "businessUnitCode": self._get_value(entry, "BUSINESS_UNIT"),
+                "locationCode": self._get_value(entry, "LOCATION")
             }
 
             payloads.append(payload)
