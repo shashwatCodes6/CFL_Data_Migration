@@ -10,6 +10,7 @@ config = load_config()
 
 PARSER_MAP = {
     "AR_Invoice": ARInvoiceParser,
+    "AR_Credit Note": ARInvoiceParser,
 }
 
 def detect_parser_by_sheet(sheet_name):

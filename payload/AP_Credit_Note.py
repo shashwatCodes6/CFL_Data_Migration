@@ -6,7 +6,7 @@ from utils.config_loader import load_config
 
 config = load_config()
 
-class ARInvoice():
+class APCreditNote():
     def date_to_epoch(self, date_value):
         if pd.isna(date_value):
             return None
@@ -46,7 +46,8 @@ class ARInvoice():
             for segment_name, column_name in segment_mapping.items():
                 if column_name != "null":
                     code_value = entry.get(segment_name, [""])
-                    
+                    print(segment_name, column_name, code_value, entry.get(segment_name))
+
                     if code_value:
                         if isinstance(code_value, list):
                             code_value = code_value[0]
