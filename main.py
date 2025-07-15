@@ -9,7 +9,7 @@ import pandas as pd
 config = load_config()
 
 PARSER_MAP = {
-    "AR": ARInvoiceParser,
+    "AR_Invoice": ARInvoiceParser,
 }
 
 def detect_parser_by_sheet(sheet_name):
