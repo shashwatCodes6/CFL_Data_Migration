@@ -60,10 +60,10 @@ class APCreditNote():
                             "code": code_value
                         })
 
-
+            print(entry)
             payload = {
                 "validationUUID": validation_uuid,
-                "invoiceType": "AR",
+                "invoiceType": "CN",
                 "segments": segments,
                 "transactionSource": self._get_value(entry, "Transaction Source"),
                 "transactionTypeName": self._get_value(entry, "Transaction Type"),
@@ -72,8 +72,7 @@ class APCreditNote():
                 "invoiceDateEpoch": self.date_to_epoch(self._get_value(entry, "Invoice Date", 0)),
                 "accountingDateEpoch": self.date_to_epoch(self._get_value(entry, "Accounting date", 0)),
                 "partyID": self._get_value(entry, "Customer"),
-                "billToSite": self._get_value(entry, "Bill to"),
-                "shipToSite": self._get_value(entry, "Ship to"),
+                "supplierBankAcc": self._get_value(entry, "Supplier Bank"),
                 "dueDateEpoch": self.date_to_epoch(self._get_value(entry, "Due Date", 0)),
                 "notes": self._get_value(entry, "Notes"),
                 "currency": self._get_value(entry, "Currency"),
@@ -101,7 +100,7 @@ class APCreditNote():
                     "validationUUID": line_uuid,
                     "itemName": self._get_value(entry, "Item", i),
                     "description": self._get_value(entry, "Line Description", i),
-                    "lineRuleName": self._get_value(entry, "Revenue Rule", i),
+                    "lineRuleName": self._get_value(entry, "Expense Rule", i),  
                     "uomName": self._get_value(entry, "UOM", i),
                     "quantity": self._get_value(entry, "Quantity", i),
                     "unitPrice": self._get_value(entry, "Unit Price", i),

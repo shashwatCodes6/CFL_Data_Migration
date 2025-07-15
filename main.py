@@ -3,6 +3,8 @@ import glob
 import json
 from utils.config_loader import load_config
 from parser.AR_Parser import ARInvoiceParser
+from parser.AP_Invoice import APInvoiceParser
+from parser.AP_Credit_Note import APCreditNoteParser
 from parser.base_parser import BaseParser
 import pandas as pd
 
@@ -11,6 +13,8 @@ config = load_config()
 PARSER_MAP = {
     "AR_Invoice": ARInvoiceParser,
     "AR_Credit Note": ARInvoiceParser,
+    "AP_Invoice": APInvoiceParser,
+    "AP_Credit Note": APCreditNoteParser,
 }
 
 def detect_parser_by_sheet(sheet_name):
@@ -57,6 +61,8 @@ def main():
                 if df.empty:
                     print(f"Skipping empty sheet: {sheet_name}")
                     continue
+
+                df.columns = df.columns.str.strip()
 
                 parser = parser_class(df)
                 parsed_data = parser.parse()

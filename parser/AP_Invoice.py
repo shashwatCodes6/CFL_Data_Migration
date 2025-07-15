@@ -1,7 +1,7 @@
 from parser.base_parser import BaseParser
 from payload.AP_Invoice import APInvoice
 
-class APCreditNoteParser(BaseParser):
+class APInvoiceParser(BaseParser):
     def __init__(self, dataframe):
         self.df = dataframe
 
