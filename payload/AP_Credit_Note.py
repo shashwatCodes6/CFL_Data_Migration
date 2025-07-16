@@ -65,20 +65,27 @@ class APCreditNote():
                 "validationUUID": validation_uuid,
                 "invoiceType": "CN",
                 "segments": segments,
-                "transactionSource": self._get_value(entry, "Transaction Source"),
-                "transactionTypeName": self._get_value(entry, "Transaction Type"),
-                "invoiceNumber": self._get_value(entry, "Invoice Number"),
-                "orderRefNo": self._get_value(entry, "Order Reference Number"),
-                "invoiceDateEpoch": self.date_to_epoch(self._get_value(entry, "Invoice Date", 0)),
-                "accountingDateEpoch": self.date_to_epoch(self._get_value(entry, "Accounting date", 0)),
-                "partyID": self._get_value(entry, "Customer"),
-                "supplierBankAcc": self._get_value(entry, "Supplier Bank"),
-                "dueDateEpoch": self.date_to_epoch(self._get_value(entry, "Due Date", 0)),
+                "subLedgerTransactionOrigin": "PAYABLE",
                 "notes": self._get_value(entry, "Notes"),
-                "currency": self._get_value(entry, "Currency"),
-                "paymentTerm": self._get_value(entry, "Payment Term") if "Payment Term" in entry else "",
-                "invoiceLineDetails": [], 
-
+                "memoLineDetails": [], 
+                "isFetchFromInvoice": "false",
+                "memoInformation": {
+                    "transactionSource": self._get_value(entry, "Transaction Source"),
+                    "transactionTypeName": self._get_value(entry, "Transaction Type"),
+                    "invoiceDateEpoch": self.date_to_epoch(self._get_value(entry, "Invoice Date", 0)),
+                    "accountingDateEpoch": self.date_to_epoch(self._get_value(entry, "Accounting date", 0)),
+                    "invoiceNumber":  self._get_value(entry, "Invoice Number"),
+                    "orderReferenceNumber": self._get_value(entry, "Order Reference Number"),
+                },
+                "supplierInformation": {
+                    "partyID": self._get_value(entry, "Customer"),
+                    "supplierBankAcc": self._get_value(entry, "Supplier Bank"),
+                },
+                "memoTerms": {
+                    "dueDateEpoch": self.date_to_epoch(self._get_value(entry, "Due Date", 0)),
+                    "currency": self._get_value(entry, "Currency"),
+                    "paymentTerm": self._get_value(entry, "Payment Term") if "Payment Term" in entry else "",
+                },
                 "accessIdentifierCodes": {}
             }
 
@@ -110,7 +117,7 @@ class APCreditNote():
                     "activeStatus": "ACTIVE"
                 }
 
-                payload["invoiceLineDetails"].append(line)
+                payload["memoLineDetails"].append(line)
 
             payload["accessIdentifierCodes"] = {
                 "coaCode": coa_code,

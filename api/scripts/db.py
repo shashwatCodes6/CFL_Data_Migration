@@ -17,7 +17,7 @@ def send_payload(payload):
     return response
 
 def main():
-    json_path = "data/output/Migration_template_AR_Credit Note.json"
+    json_path = "data/output/Migration_template_AP_Credit Note.json"
 
     if not os.path.exists(json_path):
         print(f"File not found: {json_path}")
