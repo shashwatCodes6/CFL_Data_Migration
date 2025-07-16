@@ -27,10 +27,10 @@ def main():
         payload = load_payload(json_path)
         for i in payload:
             response = send_payload(i)
-            if(response.status_code != 200):
-                print(f"Status: {response.status_code}")
-                print(f"Response: {response.text}")
-                break
+            # if(response.status_code != 200):
+            print(f"Status: {response.status_code}")
+            print(f"Response: {response.text}")
+            # break
     except Exception as e:
         print(f"Error occurred: {e}")
 

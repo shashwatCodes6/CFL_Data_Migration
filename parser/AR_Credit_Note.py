@@ -1,7 +1,7 @@
 from parser.base_parser import BaseParser
-from payload.AR_Invoice import ARInvoice
+from payload.AR_Credit_Note import ARCreditNote
 
-class ARInvoiceParser(BaseParser):
+class ARCreditNoteParser(BaseParser):
     def __init__(self, dataframe):
         self.df = dataframe
 
@@ -13,7 +13,7 @@ class ARInvoiceParser(BaseParser):
         
         grouped = df.groupby(["LEGAL_ENTITY", "Invoice Number"]).agg(list).reset_index()
         data = grouped.to_dict(orient="records")
-        ARInvoicePayloadGen = ARInvoice()
-        payload = ARInvoicePayloadGen.generate(data)
+        ARCreditNotePayloadGen = ARCreditNote()
+        payload = ARCreditNotePayloadGen.generate(data)
 
         return payload

@@ -5,6 +5,7 @@ from utils.config_loader import load_config
 from parser.AR_Parser import ARInvoiceParser
 from parser.AP_Invoice import APInvoiceParser
 from parser.AP_Credit_Note import APCreditNoteParser
+from parser.AR_Credit_Note import ARCreditNoteParser
 from parser.base_parser import BaseParser
 import pandas as pd
 
@@ -12,7 +13,7 @@ config = load_config()
 
 PARSER_MAP = {
     "AR_Invoice": ARInvoiceParser,
-    "AR_Credit Note": ARInvoiceParser,
+    "AR_Credit Note": ARCreditNoteParser,
     "AP_Invoice": APInvoiceParser,
     "AP_Credit Note": APCreditNoteParser,
 }

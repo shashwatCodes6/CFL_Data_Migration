@@ -6,7 +6,7 @@ from utils.config_loader import load_config
 
 config = load_config()
 
-class APCreditNote():
+class ARCreditNote():
     def date_to_epoch(self, date_value):
         if pd.isna(date_value):
             return None
@@ -46,13 +46,13 @@ class APCreditNote():
             for segment_name, column_name in segment_mapping.items():
                 if column_name != "null":
                     code_value = entry.get(segment_name, [""])
-                    print(segment_name, column_name, code_value, entry.get(segment_name))
-
+                    
                     if code_value:
                         if isinstance(code_value, list):
                             code_value = code_value[0]
 
                     # Skip if code_value is empty or NaN
+                    print(code_value, segment_name, column_name)
                     if code_value != "" and not (isinstance(code_value, float) and np.isnan(code_value)):
                         segments.append({
                             "validationUUID": str(uuid.uuid4()),
@@ -60,25 +60,33 @@ class APCreditNote():
                             "code": code_value
                         })
 
-            print(entry)
+
             payload = {
                 "validationUUID": validation_uuid,
                 "invoiceType": "CN",
                 "segments": segments,
-                "transactionSource": self._get_value(entry, "Transaction Source"),
-                "transactionTypeName": self._get_value(entry, "Transaction Type"),
-                "invoiceNumber": self._get_value(entry, "Invoice Number"),
-                "orderRefNo": self._get_value(entry, "Order Reference Number"),
-                "invoiceDateEpoch": self.date_to_epoch(self._get_value(entry, "Invoice Date", 0)),
-                "accountingDateEpoch": self.date_to_epoch(self._get_value(entry, "Accounting date", 0)),
-                "partyID": self._get_value(entry, "Customer"),
-                "supplierBankAcc": self._get_value(entry, "Supplier Bank"),
-                "dueDateEpoch": self.date_to_epoch(self._get_value(entry, "Due Date", 0)),
+                "memoLineDetails": [], 
+                "subLedgerTransactionOrigin": "RECEIVABLE",
+                "isFetchFromInvoice": "false",
+                "memoInformation": {
+                    "transactionSource": self._get_value(entry, "Transaction Source"),
+                    "transactionTypeName": self._get_value(entry, "Transaction Type"),
+                    "invoiceDateEpoch": self.date_to_epoch(self._get_value(entry, "Invoice Date", 0)),
+                    "accountingDateEpoch": self.date_to_epoch(self._get_value(entry, "Accounting date", 0)),
+                    "invoiceNumber": self._get_value(entry, "Invoice Number"),
+                    "orderReferenceNumber":  self._get_value(entry, "Order Reference Number"),
+                },
+                "customerInformation": {
+                    "partyID": self._get_value(entry, "Customer"),
+                    "billToSite": self._get_value(entry, "Bill to"),
+                    "shipToSite": self._get_value(entry, "Ship to"),
+                },
+                "memoTerms": {
+                    "dueDateEpoch": self.date_to_epoch(self._get_value(entry, "Due Date", 0)),
+                    "currency": self._get_value(entry, "Currency"),
+                    "paymentTerm": self._get_value(entry, "Payment Term") if "Payment Term" in entry else "",
+                },
                 "notes": self._get_value(entry, "Notes"),
-                "currency": self._get_value(entry, "Currency"),
-                "paymentTerm": self._get_value(entry, "Payment Term") if "Payment Term" in entry else "",
-                "invoiceLineDetails": [], 
-
                 "accessIdentifierCodes": {}
             }
 
@@ -98,10 +106,10 @@ class APCreditNote():
                     tax_rule["taxOverRiddenAmount"] = tax_overridden_amount
 
                 line = {
-                    "validationUUID": line_uuid,
+                    "validationUUID": str(uuid.uuid4()),
                     "itemName": self._get_value(entry, "Item", i),
                     "description": self._get_value(entry, "Line Description", i),
-                    "lineRuleName": self._get_value(entry, "Expense Rule", i),  
+                    "lineRuleName": self._get_value(entry, "Revenue Rule", i),
                     "uomName": self._get_value(entry, "UOM", i),
                     "quantity": self._get_value(entry, "Quantity", i),
                     "unitPrice": self._get_value(entry, "Unit Price", i),
@@ -110,7 +118,7 @@ class APCreditNote():
                     "activeStatus": "ACTIVE"
                 }
 
-                payload["invoiceLineDetails"].append(line)
+                payload["memoLineDetails"].append(line)
 
             payload["accessIdentifierCodes"] = {
                 "coaCode": coa_code,
