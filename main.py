@@ -6,6 +6,8 @@ from parser.AR_Parser import ARInvoiceParser
 from parser.AP_Invoice import APInvoiceParser
 from parser.AP_Credit_Note import APCreditNoteParser
 from parser.AR_Credit_Note import ARCreditNoteParser
+
+from parser.Masters_Party import MasterPartyParser
 from parser.base_parser import BaseParser
 import pandas as pd
 
@@ -16,6 +18,7 @@ PARSER_MAP = {
     "AR_Credit Note": ARCreditNoteParser,
     "AP_Invoice": APInvoiceParser,
     "AP_Credit Note": APCreditNoteParser,
+    "Masters_Party":MasterPartyParser
 }
 
 def detect_parser_by_sheet(sheet_name):
