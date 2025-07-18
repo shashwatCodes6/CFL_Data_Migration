@@ -4,9 +4,10 @@ from dotenv import load_dotenv
 import os
 
 load_dotenv()
+tm = TokenManager("INT_TOKEN", "token")
 
 def fetch_country_details(country_codes, retry=True):
-    token = TokenManager.get_token()
+    token = tm.get_token()
 
     headers = {
         "x-api-key": os.getenv("X_API_KEY"),
@@ -22,8 +23,11 @@ def fetch_country_details(country_codes, retry=True):
     response = requests.get(os.getenv("COUNTRY_URL"), headers=headers, params=params)
 
     if response.status_code == 401 and retry:
-        TokenManager.refresh_token()
+        tm.refresh_token()
         return fetch_country_details(country_codes, retry=False)
 
     response.raise_for_status()
     return response.json()[0]
+
+if __name__ == "__main__":
+    fetch_country_details("IN|AU|US")

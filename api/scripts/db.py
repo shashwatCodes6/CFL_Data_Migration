@@ -3,16 +3,23 @@ import requests
 import os
 from dotenv import load_dotenv
 import time
+# from api.scripts.token_manager import TokenManager
+from token_manager import TokenManager
 
 # Load environment variables from .env
 load_dotenv()
+tm = TokenManager("AUTH_HEADER", "accessToken")
 
 def load_payload(file_path):
     with open(file_path, "r") as f:
         return json.load(f)
 
 def send_payload(payload):
-    headers = {"Content-Type": "application/json", "Authorization": os.getenv("AUTH_HEADER"), "Cookie": os.getenv("COOKIE")}
+    headers = {
+        "Content-Type": "application/json", 
+        "Authorization": f"Bearer {tm.get_token()}", 
+        "Cookie": os.getenv("COOKIE")
+    }
     API_URL = os.getenv("API_URL")
     response = requests.post(API_URL, json=payload, headers=headers)
     return response
@@ -28,8 +35,6 @@ def main():
 
     try:
         payload = load_payload(json_path)
-        logs = []
-
         for idx, i in enumerate(payload):
             response = send_payload(i)
 
@@ -43,14 +48,10 @@ def main():
                 "response": response.text
             }
             
-            logs.append(log_entry)
             print(f"Status: {response.status_code}")
             print(f"Response: {response.text}")
 
-            log_file = os.path.join("data/output", f"{os.path.splitext(file_name)[0]}_logs.json")
-            with open(log_file, "w") as f:
-                json.dump(logs, f, indent=2)
-
+            # timeout of 3 seconds
             time.sleep(3)
 
     except Exception as e:

@@ -1,18 +1,15 @@
 import time
 import requests
 from dotenv import load_dotenv, set_key
-from datetime import datetime, timezone
 import os
 import json
 import base64
 
 load_dotenv()
 
-
 def decode_jwt_exp(token):
     try:
         payload = token.split('.')[1]
-        # Fix padding
         padding = '=' * (-len(payload) % 4)
         decoded = base64.urlsafe_b64decode(payload + padding)
         payload_json = json.loads(decoded)
@@ -21,32 +18,33 @@ def decode_jwt_exp(token):
         print("Failed to decode JWT:", e)
         return None
 
-
 class TokenManager:
-    _access_token = os.getenv("INT_TOKEN")
-    _expires_at = 0  # epoch
+    def __init__(self, name, res_header):
+        self.name = name
+        self.res_header = res_header
 
-    @classmethod
-    def get_token(cls):
-        if cls._access_token is None or time.time() >= cls._expires_at:
-            cls.refresh_token()
-        return cls._access_token
+    def get_token(self):
+        access_token = os.getenv(self.name)
 
-    @classmethod
-    def refresh_token(cls):
-        print("Refreshing int token...")
-        body = json.loads(os.getenv("INT_TOKEN_REQ_BODY"))
-        response = requests.post(os.getenv("INT_TOKEN_URL"), headers={
-            "x-api-key": os.getenv("X_API_KEY"),
-        }, json=body)
+        exp = decode_jwt_exp(access_token) if access_token else None
+        if not access_token or not exp or time.time() >= exp:
+            self.refresh_token()
+
+        return os.getenv(self.name)
+
+    def refresh_token(self):
+        print(f"Refreshing token for {self.name}...")
+        body = json.loads(os.getenv(self.name + "_REQ_BODY"))
+
+        response = requests.post(
+            os.getenv(self.name + "_URL"),
+            headers={"x-api-key": os.getenv("X_API_KEY")},
+            json=body
+        )
 
         if response.status_code != 200:
-            print(response.text)
             raise Exception("Failed to refresh token")
 
         token_data = response.json()
-        cls._access_token = token_data["token"]
-        set_key(".env", "INT_TOKEN", cls._access_token)
-
-        jwt_exp = decode_jwt_exp(cls._access_token)
-        cls._expires_at = jwt_exp - 60 
+        access_token = token_data.get(self.res_header, "")
+        set_key(".env", self.name, access_token)
