@@ -18,7 +18,7 @@ PARSER_MAP = {
     "AR_Credit Note": ARCreditNoteParser,
     "AP_Invoice": APInvoiceParser,
     "AP_Credit Note": APCreditNoteParser,
-    "Masters_Party":MasterPartyParser
+    "Masters_Party": MasterPartyParser
 }
 
 def detect_parser_by_sheet(sheet_name):

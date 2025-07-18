@@ -2,6 +2,7 @@ import json
 import requests
 import os
 from dotenv import load_dotenv
+import time
 
 # Load environment variables from .env
 load_dotenv()
@@ -17,7 +18,9 @@ def send_payload(payload):
     return response
 
 def main():
-    json_path = "data/output/Migration_template_AP_Credit Note.json"
+    path_prefix = "data/output" # TODO: make it modular
+    file_name = "Migration_template_AP_Invoice.json"
+    json_path = path_prefix + "/" + file_name
 
     if not os.path.exists(json_path):
         print(f"File not found: {json_path}")
@@ -25,14 +28,33 @@ def main():
 
     try:
         payload = load_payload(json_path)
-        for i in payload:
+        logs = []
+
+        for idx, i in enumerate(payload):
             response = send_payload(i)
-            # if(response.status_code != 200):
+
+            # Collect log info
+            log_entry = {
+                "payload_number": idx + 1,
+                # TODO: both of them can be at different places in the payload
+                # "invoice_number": i.get("Invoice Number", ""),
+                # "legal_entity": i.get("LEGAL_ENTITY", ""),
+                "status_code": response.status_code,
+                "response": response.text
+            }
+            
+            logs.append(log_entry)
             print(f"Status: {response.status_code}")
             print(f"Response: {response.text}")
-            # break
+
+            log_file = os.path.join("data/output", f"{os.path.splitext(file_name)[0]}_logs.json")
+            with open(log_file, "w") as f:
+                json.dump(logs, f, indent=2)
+
+            time.sleep(3)
+
     except Exception as e:
-        print(f"Error occurred: {e}")
+        print(f"Error: {e}")
 
 if __name__ == "__main__":
     main()
