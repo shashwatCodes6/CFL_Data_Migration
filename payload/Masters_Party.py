@@ -1,3 +1,5 @@
+from api.scripts import region_details
+
 class MasterPartyPayload:
     def __init__(self):
         pass
@@ -15,16 +17,21 @@ class MasterPartyPayload:
                 "companyPhone": record.get("Company Phone", ""),
                 "activeStatus": record.get("Active Status", ""),
                 "description": record.get("Description", ""),
-                "countryOfRegistration": {
-                    "id": "",
-                    "name": "",
-                    "iso2Code": "",
-                    "iso3Code": "",
-                    "phoneCode": ""
-                },
+                "countryOfRegistration": {},
                 "masterPartyEntityType": record.get("Entity Type", ""),
                 "companyPhoneCode": record.get("Company Phone Code", ""),
             }
+            
+            country_details = region_details.fetch_country_details(record.get("Country", ""))
+            payload["countryOfRegistration"] = {
+                "id": country_details.get("id", ""),
+                "name": country_details.get("name", ""),
+                "iso2Code": country_details.get("iso2", ""),
+                "iso3Code": country_details.get("iso3", ""),
+                "phoneCode": country_details.get("phonecode", ""),
+            }
+
+
             payloads.append(payload)
         
         return payloads
