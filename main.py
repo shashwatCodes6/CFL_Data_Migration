@@ -6,12 +6,13 @@ from parser.AR_Parser import ARInvoiceParser
 from parser.AP_Invoice import APInvoiceParser
 from parser.AP_Credit_Note import APCreditNoteParser
 from parser.AR_Credit_Note import ARCreditNoteParser
-
+from utils.logger import get_logger
 from parser.Masters_Party import MasterPartyParser
 from parser.base_parser import BaseParser
 import pandas as pd
 
 config = load_config()
+logger = get_logger()
 
 PARSER_MAP = {
     "AR_Invoice": ARInvoiceParser,

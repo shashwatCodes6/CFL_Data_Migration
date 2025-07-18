@@ -1,4 +1,7 @@
 from api.scripts import region_details
+from utils.logger import get_logger
+
+logger = get_logger()
 
 class MasterPartyPayload:
     def __init__(self):
@@ -31,6 +34,7 @@ class MasterPartyPayload:
                 "phoneCode": country_details.get("phonecode", ""),
             }
 
+            logger.info("Master party: " + str(payload))
 
             payloads.append(payload)
         

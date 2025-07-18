@@ -3,8 +3,10 @@ from datetime import datetime
 import pandas as pd
 import numpy as np
 from utils.config_loader import load_config
+from utils.logger import get_logger
 
 config = load_config()
+logger = get_logger()
 
 class APInvoice():
     def date_to_epoch(self, date_value):
@@ -46,8 +48,7 @@ class APInvoice():
             for segment_name, column_name in segment_mapping.items():
                 if column_name != "null":
                     code_value = entry.get(segment_name, [""])
-                    print(segment_name, column_name, code_value, entry.get(segment_name))
-
+                    
                     if code_value:
                         if isinstance(code_value, list):
                             code_value = code_value[0]
@@ -60,7 +61,6 @@ class APInvoice():
                             "code": code_value
                         })
 
-            print(entry)
             payload = {
                 "validationUUID": validation_uuid,
                 "invoiceType": "AP",
@@ -119,6 +119,8 @@ class APInvoice():
                 "businessUnitCode": self._get_value(entry, "BUSINESS_UNIT"),
                 "locationCode": self._get_value(entry, "LOCATION")
             }
+
+            logger.info("AP Invoice: " + str(payload))
 
             payloads.append(payload)
 

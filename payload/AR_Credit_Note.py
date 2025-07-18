@@ -3,8 +3,10 @@ from datetime import datetime
 import pandas as pd
 import numpy as np
 from utils.config_loader import load_config
+from utils.logger import get_logger
 
 config = load_config()
+logger = get_logger()
 
 class ARCreditNote():
     def date_to_epoch(self, date_value):
@@ -52,7 +54,6 @@ class ARCreditNote():
                             code_value = code_value[0]
 
                     # Skip if code_value is empty or NaN
-                    print(code_value, segment_name, column_name)
                     if code_value != "" and not (isinstance(code_value, float) and np.isnan(code_value)):
                         segments.append({
                             "validationUUID": str(uuid.uuid4()),
@@ -126,6 +127,8 @@ class ARCreditNote():
                 "businessUnitCode": self._get_value(entry, "BUSINESS_UNIT"),
                 "locationCode": self._get_value(entry, "LOCATION")
             }
+
+            logger.info("AR Credit Note: " + str(payload))
 
             payloads.append(payload)
 

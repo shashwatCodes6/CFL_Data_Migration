@@ -3,7 +3,9 @@ from datetime import datetime
 import pandas as pd
 import numpy as np
 from utils.config_loader import load_config
+from utils.logger import get_logger
 
+logger = get_logger()
 config = load_config()
 
 class ARInvoice():
@@ -117,6 +119,8 @@ class ARInvoice():
                 "businessUnitCode": self._get_value(entry, "BUSINESS_UNIT"),
                 "locationCode": self._get_value(entry, "LOCATION")
             }
+
+            logger.info("AR Invoice: " + str(payload))
 
             payloads.append(payload)
 
