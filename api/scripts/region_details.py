@@ -1,5 +1,6 @@
 import requests
 from api.scripts.token_manager import TokenManager
+# from token_manager import TokenManager
 from dotenv import load_dotenv
 import os
 
@@ -30,4 +31,4 @@ def fetch_country_details(country_codes, retry=True):
     return response.json()[0]
 
 if __name__ == "__main__":
-    fetch_country_details("IN|AU|US")
+    print(fetch_country_details("IN|AU|US"))

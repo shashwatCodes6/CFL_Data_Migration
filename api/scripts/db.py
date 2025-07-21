@@ -3,7 +3,6 @@ import requests
 import os
 from dotenv import load_dotenv
 import time
-# from api.scripts.token_manager import TokenManager
 from token_manager import TokenManager
 
 # Load environment variables from .env
@@ -15,9 +14,10 @@ def load_payload(file_path):
         return json.load(f)
 
 def send_payload(payload):
+    auth_token = tm.get_token()
     headers = {
         "Content-Type": "application/json", 
-        "Authorization": f"Bearer {tm.get_token()}", 
+        "Authorization": f"Bearer {auth_token}", 
         "Cookie": os.getenv("COOKIE")
     }
     API_URL = os.getenv("API_URL")
@@ -26,7 +26,7 @@ def send_payload(payload):
 
 def main():
     path_prefix = "data/output" # TODO: make it modular
-    file_name = "Migration_template_AP_Invoice.json"
+    file_name = "Migration_template_AP_Credit Note.json"
     json_path = path_prefix + "/" + file_name
 
     if not os.path.exists(json_path):
