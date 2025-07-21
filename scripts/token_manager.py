@@ -7,7 +7,9 @@ import base64
 import random
 import threading
 from typing import Optional
+from utils.logger import get_logger
 
+logger = get_logger()
 load_dotenv()
 
 def decode_jwt_exp(token: str) -> Optional[float]:
@@ -19,7 +21,7 @@ def decode_jwt_exp(token: str) -> Optional[float]:
         payload_json = json.loads(decoded)
         return payload_json.get("exp")
     except Exception as e:
-        print(f"Failed to decode JWT: {e}")
+        logger.info(f"Failed to decode JWT: {e}")
         return None
 
 class TokenRefreshError(Exception):
@@ -81,7 +83,7 @@ class TokenManager:
                 # Prevent too frequent refresh attempts (rate limiting)
                 current_time = time.time()
                 if current_time - self._last_refresh_attempt < 5:  # 5-second cooldown
-                    print(f"Skipping refresh for {self.name} - too recent (cooldown: 5s)")
+                    logger.info(f"Skipping refresh for {self.name} - too recent (cooldown: 5s)")
                     if self._token_cache:
                         return self._token_cache
                 
@@ -95,7 +97,7 @@ class TokenManager:
                 if access_token and exp:
                     self._token_cache = access_token
                     self._token_expiry = exp
-                    print(f"Token cached for {self.name}: {access_token[:20]}...")
+                    logger.info(f"Token cached for {self.name}: {access_token[:20]}...")
                     
             return access_token or self._token_cache
     
@@ -105,7 +107,7 @@ class TokenManager:
         
         for attempt in range(self.max_retries + 1):  # +1 for initial attempt
             try:
-                print(f"Refreshing token for {self.name}... (attempt {attempt + 1}/{self.max_retries + 1})")
+                logger.info(f"Refreshing token for {self.name}... (attempt {attempt + 1}/{self.max_retries + 1})")
                 
                 # Get request body from environment
                 req_body_env = os.getenv(self.name + "_REQ_BODY")
@@ -151,7 +153,7 @@ class TokenManager:
                     # Save the new token and reload environment
                     set_key(".env", self.name, access_token)
                     load_dotenv(override=True)  # Reload to ensure env var is updated
-                    print(f"Token refreshed successfully for {self.name}")
+                    logger.info(f"Token refreshed successfully for {self.name}")
                     return
                 
                 # Handle specific HTTP status codes
@@ -161,7 +163,7 @@ class TokenManager:
                     raise TokenRefreshError("Forbidden - insufficient permissions")
                 elif response.status_code == 429:
                     # Rate limited - wait longer before retry
-                    print(f"Rate limited (429). Waiting before retry...")
+                    logger.info(f"Rate limited (429). Waiting before retry...")
                     if attempt < self.max_retries:
                         delay = self.base_delay * (3 ** attempt) + random.uniform(0, 1)
                         time.sleep(delay)
@@ -176,31 +178,31 @@ class TokenManager:
                     
             except requests.exceptions.Timeout:
                 last_exception = TokenRefreshError("Request timeout")
-                print(f"Request timeout on attempt {attempt + 1}")
+                logger.info(f"Request timeout on attempt {attempt + 1}")
                 
             except requests.exceptions.ConnectionError:
                 last_exception = TokenRefreshError("Connection error")
-                print(f"Connection error on attempt {attempt + 1}")
+                logger.info(f"Connection error on attempt {attempt + 1}")
                 
             except requests.exceptions.RequestException as e:
                 last_exception = TokenRefreshError(f"Request failed: {str(e)}")
-                print(f"Request failed on attempt {attempt + 1}: {e}")
+                logger.info(f"Request failed on attempt {attempt + 1}: {e}")
                 
             except TokenRefreshError as e:
                 # Re-raise TokenRefreshError immediately for client errors
                 if any(msg in str(e) for msg in ["Authentication failed", "Forbidden", "Missing", "Invalid JSON"]):
                     raise e
                 last_exception = e
-                print(f"Token refresh failed on attempt {attempt + 1}: {e}")
+                logger.info(f"Token refresh failed on attempt {attempt + 1}: {e}")
             
             except Exception as e:
                 last_exception = TokenRefreshError(f"Unexpected error: {str(e)}")
-                print(f"Unexpected error on attempt {attempt + 1}: {e}")
+                logger.info(f"Unexpected error on attempt {attempt + 1}: {e}")
             
             # Calculate delay before next retry (exponential backoff with jitter)
             if attempt < self.max_retries:
                 delay = self.base_delay * (2 ** attempt) + random.uniform(0, 1)
-                print(f"Retrying in {delay:.1f} seconds...")
+                logger.info(f"Retrying in {delay:.1f} seconds...")
                 time.sleep(delay)
         
         # All retries exhausted
@@ -213,7 +215,7 @@ class TokenManager:
             self._token_expiry = None
             # Force reload environment variables
             load_dotenv(override=True)
-            print(f"Token cache invalidated for {self.name}")
+            logger.info(f"Token cache invalidated for {self.name}")
     
     def get_fresh_token(self) -> str:
         """
@@ -228,13 +230,13 @@ class TokenManager:
         
         # Use file token if env token is outdated
         if file_token and env_token != file_token:
-            print(f"Environment variable outdated for {self.name}, using file token")
+            logger.info(f"Environment variable outdated for {self.name}, using file token")
             # Update environment with file token
             os.environ[self.name] = file_token
             return file_token
         
         token = env_token or file_token
-        print(f"Fresh token for {self.name}: {token[:20] if token else 'None'}...")
+        logger.info(f"Fresh token for {self.name}: {token[:20] if token else 'None'}...")
         return token
     
     def get_token_with_401_retry(self, max_401_retries: int = 2) -> str:
@@ -256,7 +258,7 @@ class TokenManager:
         Handle 401 error by invalidating cache and getting fresh token.
         Call this method when you receive a 401 response.
         """
-        print(f"Handling 401 error for {self.name} - forcing token refresh")
+        logger.info(f"Handling 401 error for {self.name} - forcing token refresh")
         self.invalidate_cache()
         return self.get_token(force_refresh=True)
 
@@ -291,7 +293,7 @@ def make_authenticated_request(token_manager: TokenManager, method: str, url: st
                 raise TokenRefreshError("No token available")
             
             # Debug: Show token being used
-            print(f"Using token for request (attempt {attempt + 1}): {token[:20]}...")
+            logger.info(f"Using token for request (attempt {attempt + 1}): {token[:20]}...")
             
             # Prepare headers
             headers = kwargs.get('headers', {})
@@ -303,8 +305,8 @@ def make_authenticated_request(token_manager: TokenManager, method: str, url: st
             
             # If 401, invalidate cache and retry
             if response.status_code == 401 and attempt < max_401_retries:
-                print(f"Received 401, attempting retry {attempt + 1}/{max_401_retries}")
-                print(f"Response: {response.text[:200]}...")
+                logger.info(f"Received 401, attempting retry {attempt + 1}/{max_401_retries}")
+                logger.info(f"Response: {response.text[:200]}...")
                 token_manager.invalidate_cache()
                 continue
                 
@@ -313,7 +315,7 @@ def make_authenticated_request(token_manager: TokenManager, method: str, url: st
         except Exception as e:
             if attempt == max_401_retries:
                 raise
-            print(f"Request failed on attempt {attempt + 1}: {e}")
+            logger.info(f"Request failed on attempt {attempt + 1}: {e}")
     
     # This should never be reached, but just in case
     raise TokenRefreshError("Max 401 retries exceeded")

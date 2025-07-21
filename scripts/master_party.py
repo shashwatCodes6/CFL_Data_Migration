@@ -3,8 +3,8 @@ import requests
 import os
 from dotenv import load_dotenv
 import time
-# from api.scripts.token_manager import TokenManager
 from token_manager import TokenManager
+from utils.logger import get_logger
 
 import cloudscraper
 import certifi
@@ -12,6 +12,7 @@ scraper = cloudscraper.create_scraper()
 
 # Load environment variables from .env
 load_dotenv()
+logger = get_logger()
 tm = TokenManager("AUTH_HEADER", "accessToken")
 
 def load_payload(file_path):
@@ -57,7 +58,7 @@ def main():
     json_path = path_prefix + "/" + file_name
 
     if not os.path.exists(json_path):
-        print(f"File not found: {json_path}")
+        logger.error(f"File not found: {json_path}")
         return
 
     try:
@@ -65,8 +66,7 @@ def main():
         for idx, i in enumerate(payload):
             response = send_payload(i)
 
-            print(f"Status: {response.status_code}")
-            print(f"Response: {response.text}")
+            logger.info(f"Master Party Status: {response.status_code} Response: {response.text}")
 
             # timeout of 3 seconds
             time.sleep(3)

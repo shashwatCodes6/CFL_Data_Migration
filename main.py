@@ -49,7 +49,7 @@ def main():
             continue
 
         file_path = os.path.join(input_dir, file_name)
-        print(f"Opening Excel file: {file_path}")
+        logger.info(f"Opening Excel file: {file_path}")
 
         try:
             # Get sheet names first
@@ -57,16 +57,16 @@ def main():
             sheet_names = xl.sheet_names
 
             for sheet_name in sheet_names:
-                print(f"Processing sheet: {sheet_name}")
+                logger.info(f"Processing sheet: {sheet_name}")
                 parser_class = detect_parser_by_sheet(sheet_name)
 
                 if not parser_class:
-                    print(f"No parser found for sheet: {sheet_name}")
+                    logger.warn(f"No parser found for sheet: {sheet_name}")
                     continue
 
                 df = xl.parse(sheet_name, dtype=str)
                 if df.empty:
-                    print(f"Skipping empty sheet: {sheet_name}")
+                    logger.warn(f"Skipping empty sheet: {sheet_name}")
                     continue
 
                 df.columns = df.columns.str.strip()
@@ -81,11 +81,11 @@ def main():
 
                 with open(output_file, "w") as f:
                     json.dump(parsed_data, f, indent=2)
-                print(f"Saved payload to: {output_file}")
+                logger.info(f"Saved payload to: {output_file}")
 
 
         except Exception as e:
-            print(f"Failed processing {file_path}: {str(e)}")
+            logger.error(f"Failed processing {file_path}: {str(e)}")
 
 
 if __name__ == "__main__":

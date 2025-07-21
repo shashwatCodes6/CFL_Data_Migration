@@ -1,13 +1,20 @@
+import sys
+import os
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 import json
 import requests
-import os
 from dotenv import load_dotenv
 import time
 from token_manager import TokenManager
+from utils.logger import get_logger
 
 # Load environment variables from .env
 load_dotenv()
+logger = get_logger()
 tm = TokenManager("AUTH_HEADER", "accessToken")
+
 
 def load_payload(file_path):
     with open(file_path, "r") as f:
@@ -30,7 +37,7 @@ def main():
     json_path = path_prefix + "/" + file_name
 
     if not os.path.exists(json_path):
-        print(f"File not found: {json_path}")
+        logger.error(f"File not found: {json_path}")
         return
 
     try:
@@ -48,14 +55,13 @@ def main():
                 "response": response.text
             }
             
-            print(f"Status: {response.status_code}")
-            print(f"Response: {response.text}")
-
+            logger.info(f"Status: {response.status_code} Response: {str(log_entry)} Sheet: {file_name}")
+            
             # timeout of 3 seconds
             time.sleep(3)
 
     except Exception as e:
-        print(f"Error: {e}")
+        logger.error(f"Error in db script: {e}")
 
 if __name__ == "__main__":
     main()

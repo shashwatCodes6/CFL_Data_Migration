@@ -1,9 +1,11 @@
 import requests
-from api.scripts.token_manager import TokenManager
+from scripts.token_manager import TokenManager
 # from token_manager import TokenManager
 from dotenv import load_dotenv
 import os
+from utils.logger import get_logger
 
+logger = get_logger()
 load_dotenv()
 tm = TokenManager("INT_TOKEN", "token")
 
