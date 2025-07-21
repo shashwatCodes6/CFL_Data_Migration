@@ -61,12 +61,12 @@ def main():
                 parser_class = detect_parser_by_sheet(sheet_name)
 
                 if not parser_class:
-                    logger.warn(f"No parser found for sheet: {sheet_name}")
+                    logger.warning(f"No parser found for sheet: {sheet_name}")
                     continue
 
                 df = xl.parse(sheet_name, dtype=str)
                 if df.empty:
-                    logger.warn(f"Skipping empty sheet: {sheet_name}")
+                    logger.warning(f"Skipping empty sheet: {sheet_name}")
                     continue
 
                 df.columns = df.columns.str.strip()

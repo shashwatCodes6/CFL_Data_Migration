@@ -11,9 +11,6 @@ class LEPartyParser(BaseParser):
         
         df = self.df
         
-        # Convert all values to string type
-        df = df.astype(str)
-        
         data = df.to_dict(orient="records")
         
         payload_gen = LEPartyPayload()
