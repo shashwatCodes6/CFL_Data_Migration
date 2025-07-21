@@ -130,6 +130,10 @@ class ARCreditNote():
 
             logger.info("AR Credit Note: " + str(payload))
 
-            payloads.append(payload)
+            payloads.append({
+                "payload": payload,
+                "legal_entity": self._get_value(entry, "LEGAL_ENTITY"),
+                "invoice_number": self._get_value(entry, "Invoice Number")
+            })
 
         return payloads

@@ -1,6 +1,7 @@
 import logging
 import os
 from datetime import datetime
+import json
 
 _LOGGER = None  # Singleton logger instance
 
@@ -42,6 +43,29 @@ def get_logger(log_dir="data/logs"):
 class CustomLogger:
     def __init__(self):
         self.logger = get_logger()
+
+    def save_log_entry(self, file_name, log_entry_dict):
+        """Save or append a JSON dict to a JSON array in the response file"""
+        os.makedirs("data/responses", exist_ok=True)
+        file_path = os.path.join("data/responses", file_name)
+
+        # Read existing data if file exists
+        if os.path.exists(file_path):
+            with open(file_path, "r", encoding="utf-8") as f:
+                try:
+                    existing_data = json.load(f)
+                except json.JSONDecodeError:
+                    existing_data = []
+        else:
+            existing_data = []
+
+        # Append new entry with timestamp
+        log_entry_dict["timestamp"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        existing_data.append(log_entry_dict)
+
+        # Write updated list back to file
+        with open(file_path, "w", encoding="utf-8") as f:
+            json.dump(existing_data, f, indent=2)
 
     def info(self, msg):
         self.logger.info(msg)

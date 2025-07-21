@@ -9,9 +9,12 @@ from dotenv import load_dotenv
 import time
 from token_manager import TokenManager
 from utils.logger import get_logger
+from utils.logger import CustomLogger
+
 
 # Load environment variables from .env
 load_dotenv()
+custom_logger = CustomLogger()
 logger = get_logger()
 tm = TokenManager("AUTH_HEADER", "accessToken")
 
@@ -43,19 +46,18 @@ def main():
     try:
         payload = load_payload(json_path)
         for idx, i in enumerate(payload):
-            response = send_payload(i)
+            response = send_payload(i.get("payload", {}))
 
             # Collect log info
             log_entry = {
                 "payload_number": idx + 1,
-                # TODO: both of them can be at different places in the payload
-                # "invoice_number": i.get("Invoice Number", ""),
-                # "legal_entity": i.get("LEGAL_ENTITY", ""),
+                "invoice_number": i.get("invoice_number", ""),
+                "legal_entity": i.get("legal_entity", ""),
                 "status_code": response.status_code,
-                "response": response.text
+                "response": response.json()
             }
             
-            logger.info(f"Status: {response.status_code} Response: {str(log_entry)} Sheet: {file_name}")
+            custom_logger.save_log_entry(file_name, log_entry)
             
             # timeout of 3 seconds
             time.sleep(3)
