@@ -131,7 +131,8 @@ class APCreditNote():
             payloads.append({
                 "payload": payload,
                 "legal_entity": self._get_value(entry, "LEGAL_ENTITY"),
-                "invoice_number": self._get_value(entry, "Invoice Number")
+                "invoice_number": self._get_value(entry, "Invoice Number"),
+                "row_number": self._get_value(entry, "row_number")
             })
 
         return payloads

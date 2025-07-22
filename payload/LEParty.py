@@ -70,7 +70,12 @@ class LEPartyPayload:
                 "deletedDocuments": [],
                 "segmentDetails": self._get_segment_details(record)
             }
-            payloads.append(payload)
+            payloads.append({
+                "payload": payload,
+                "legal_entity": self.get_value(record, "LEGAL_ENTITY"),
+                "invoice_number": self.get_value(record, "Invoice Number"),
+                "row_number": self.get_value(record, "row_number")
+            })
         
         return payloads
     

@@ -69,6 +69,7 @@ def main():
                     logger.warning(f"Skipping empty sheet: {sheet_name}")
                     continue
 
+                df['row_number'] = df.index    # for indexing the row number of the entry 
                 df.columns = df.columns.str.strip()
 
                 parser = parser_class(df)

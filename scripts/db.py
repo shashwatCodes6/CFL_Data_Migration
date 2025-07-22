@@ -14,7 +14,7 @@ from utils.logger import CustomLogger
 
 # Load environment variables from .env
 load_dotenv()
-custom_logger = CustomLogger()
+custom_logger = CustomLogger("Migration_template_AR_Credit Note.json")
 logger = get_logger()
 tm = TokenManager("AUTH_HEADER", "accessToken")
 
@@ -35,8 +35,9 @@ def send_payload(payload):
 
 def main():
     path_prefix = "data/output" # TODO: make it modular
-    file_name = "Migration_template_AP_Credit Note.json"
+    file_name = "Migration_template_AR_Credit Note.json"
     json_path = path_prefix + "/" + file_name
+    custom_logger.start_auto_flush()
 
     if not os.path.exists(json_path):
         logger.error(f"File not found: {json_path}")
@@ -52,16 +53,21 @@ def main():
                 "payload_number": idx + 1,
                 "invoice_number": i.get("invoice_number", ""),
                 "legal_entity": i.get("legal_entity", ""),
+                "row_number": i.get("row_number", ""),
                 "status_code": response.status_code,
                 "response": response.json()
             }
-            custom_logger.save_log_entry(file_name, log_entry)
+            custom_logger.save_log_entry(log_entry)
             
             # timeout of 3 seconds
             time.sleep(3)
-
+            
     except Exception as e:
         logger.error(f"Error in db script: {e}")
+        custom_logger.stop_auto_flush()
+    
+    custom_logger.stop_auto_flush()
+
 
 if __name__ == "__main__":
     main()

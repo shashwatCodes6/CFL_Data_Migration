@@ -36,6 +36,9 @@ class MasterPartyPayload:
 
             logger.info("Master party: " + str(payload))
 
-            payloads.append(payload)
+            payloads.append({
+                "payload": payload,
+                "row_number": record.get("row_number", "")
+            })
         
         return payloads

@@ -10,14 +10,14 @@ import time
 from token_manager import TokenManager
 from utils.logger import get_logger
 from utils.logger import CustomLogger
-
 import cloudscraper
 import certifi
+
 scraper = cloudscraper.create_scraper()
 
 # Load environment variables from .env
 load_dotenv()
-custom_logger = CustomLogger()
+custom_logger = CustomLogger("Migration_template_Masters_Party.json")
 logger = get_logger()
 tm = TokenManager("AUTH_HEADER", "accessToken")
 
@@ -70,12 +70,21 @@ def main():
     try:
         payload = load_payload(json_path)
         for idx, i in enumerate(payload):
-            response = send_payload(i)
+            if "payload" in i:
+                response = send_payload(i.get("payload"))
 
-            logger.info(f"Master Party Status: {response.status_code} Response: {response.text}")
+                log_entry = {
+                    "payload_number": idx + 1,
+                    "invoice_number": i.get("invoice_number", ""),
+                    "legal_entity": i.get("legal_entity", ""),
+                    "row_number": i.get("row_number", ""),
+                    "status_code": response.status_code,
+                    "response": response.json()
+                }
+                custom_logger.save_log_entry(log_entry)
 
-            # timeout of 3 seconds
-            time.sleep(3)
+                # timeout of 3 seconds
+                time.sleep(3)
 
     except Exception as e:
         print(f"Error: {e}")
