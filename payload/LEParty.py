@@ -1,6 +1,11 @@
+import sys
+import os
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 import numpy as np
 import pandas as pd
-
+from scripts.region_details import fetch_country_details, fetch_state_details, fetch_city_details
 
 class LEPartyPayload:
     def __init__(self):
@@ -85,35 +90,60 @@ class LEPartyPayload:
         }]
     
     def _get_city_details(self, record):
-        return {
-            "id": "",
-            "name": self.get_value(record, "City", ""),
-            "stateId": "",
-            "stateName": "",
-            "stateIso2Code": self.get_value(record, "State", ""),
-            "countryId": "",
-            "countryName": "",
-            "countryIso2Code": self.get_value(record, "Country", "")
-        }
+        city_name = self.get_value(record, "City", "")
+        state_code = self.get_value(record, "State", "")
+        country_code = self.get_value(record, "Country", "")
+
+        try:
+            city_details = fetch_city_details(city_name, state_code, country_code)
+            return {
+                "id": city_details.get("id", ""),
+                "name": city_details.get("name", ""),
+                "stateId": city_details.get("stateId", ""),
+                "stateName": city_details.get("stateName", ""),
+                "stateIso2Code": city_details.get("stateIso2", ""),
+                "countryId": city_details.get("countryId", ""),
+                "countryName": city_details.get("countryName", ""),
+                "countryIso2Code": city_details.get("countryIso2", ""),
+            }
+        
+        except Exception as e:
+            raise Exception(f"error while fetching state details for {city_name}: {e}")
     
     def _get_state_details(self, record):
-        return {
-            "id": "",
-            "name": "",
-            "iso2Code": self.get_value(record, "State", ""),
-            "countryId": "",
-            "countryIso2Code": self.get_value(record, "Country", ""),
-            "countryName": ""
-        }
+        state_details = {}
+        country_iso2code = self.get_value(record, "Country", "")
+        state_iso2code = self.get_value(record, "State", "")
+        try:
+            state_details = fetch_state_details(state_iso2code, country_iso2code)
+            return {
+                "id": state_details.get("id", ""),
+                "name": state_details.get("name", ""),
+                "stateIso2": state_details.get("stateIso2", ""),
+                "countryId": state_details.get("countryId", ""),
+                "countryIso2": state_details.get("countryIso2", ""),
+                "countryName": state_details.get("countryName", ""),
+            }
+        except Exception as e:
+            raise Exception(f"error while fetching state details for {state_iso2code}: {e}")
     
     def _get_country_details(self, record):
-        return {
-            "id": "",
-            "name": "",
-            "iso2Code": self.get_value(record, "Country", ""),
-            "iso3Code": "",
-            "phoneCode": ""
-        }
+        iso2code = self.get_value(record, "Country", "")
+        if iso2code == "":
+                return country_details
+        country_details = {}
+        try:
+            country_details = fetch_country_details(iso2code)
+            return {
+                "id": country_details.get("id", ""),
+                "name": country_details.get("name", ""),
+                "iso2Code": country_details.get("iso2", ""),
+                "iso3Code": country_details.get("iso3", ""),
+                "phoneCode": country_details.get("phonecode", ""),
+            }
+        except Exception as e:
+            raise Exception(f"error while fetching country details for {iso2code}: {e}")
+
     
     def _get_contact_details(self, record):
         return [{

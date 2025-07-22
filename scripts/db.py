@@ -27,8 +27,7 @@ def send_payload(payload):
     auth_token = tm.get_token()
     headers = {
         "Content-Type": "application/json", 
-        "Authorization": f"Bearer {auth_token}", 
-        "Cookie": os.getenv("COOKIE")
+        "Authorization": f"Bearer {auth_token}",
     }
     API_URL = os.getenv("API_URL")
     response = requests.post(API_URL, json=payload, headers=headers)
@@ -56,7 +55,6 @@ def main():
                 "status_code": response.status_code,
                 "response": response.json()
             }
-            
             custom_logger.save_log_entry(file_name, log_entry)
             
             # timeout of 3 seconds

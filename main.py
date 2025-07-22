@@ -20,7 +20,7 @@ PARSER_MAP = {
     "AR_Credit Note": ARCreditNoteParser,
     "AP_Invoice": APInvoiceParser,
     "AP_Credit Note": APCreditNoteParser,
-    "Masters_Party":MasterPartyParser,
+    "Masters_Party": MasterPartyParser,
     "LE_Party": LEPartyParser
 }
 

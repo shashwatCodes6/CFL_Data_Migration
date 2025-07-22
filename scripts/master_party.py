@@ -1,10 +1,15 @@
+import sys
+import os
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 import json
 import requests
-import os
 from dotenv import load_dotenv
 import time
 from token_manager import TokenManager
 from utils.logger import get_logger
+from utils.logger import CustomLogger
 
 import cloudscraper
 import certifi
@@ -12,6 +17,7 @@ scraper = cloudscraper.create_scraper()
 
 # Load environment variables from .env
 load_dotenv()
+custom_logger = CustomLogger()
 logger = get_logger()
 tm = TokenManager("AUTH_HEADER", "accessToken")
 
