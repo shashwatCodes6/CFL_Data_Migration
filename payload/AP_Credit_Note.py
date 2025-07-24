@@ -46,7 +46,7 @@ class APCreditNote():
             segments = []
 
             for segment_name, column_name in segment_mapping.items():
-                if column_name != "null":
+                if column_name:
                     code_value = entry.get(segment_name, [""])
                     
                     if code_value:
