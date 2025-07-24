@@ -53,7 +53,7 @@ def main():
                 "payload_number": idx + 1,
                 "invoice_number": i.get("invoice_number", ""),
                 "legal_entity": i.get("legal_entity", ""),
-                "row_number": i.get("row_number", ""),
+                "row_number": i.get("row_number", []),
                 "status_code": response.status_code,
                 "response": response.json()
             }

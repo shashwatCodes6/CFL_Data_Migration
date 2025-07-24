@@ -74,7 +74,7 @@ class LEPartyPayload:
                 "payload": payload,
                 "legal_entity": self.get_value(record, "LEGAL_ENTITY"),
                 "invoice_number": self.get_value(record, "Invoice Number"),
-                "row_number": self.get_value(record, "row_number")
+                "row_number": record.get("row_number", [])
             })
         
         return payloads
