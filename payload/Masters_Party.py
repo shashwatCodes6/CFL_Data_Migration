@@ -38,7 +38,9 @@ class MasterPartyPayload:
 
             payloads.append({
                 "payload": payload,
-                "row_number": record.get("row_number", "")
+                "row_number": record.get("row_number", ""),
+                "dunsNumber": record.get("DUNS", ""),
+                "masterPartyName": record.get("Party Name", ""),
             })
         
         return payloads

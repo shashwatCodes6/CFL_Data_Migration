@@ -69,18 +69,20 @@ def main():
 
     try:
         payload = load_payload(json_path)
+        custom_logger.start_auto_flush()
         for idx, i in enumerate(payload):
             if "payload" in i:
                 response = send_payload(i.get("payload"))
 
                 log_entry = {
                     "payload_number": idx + 1,
-                    "invoice_number": i.get("invoice_number", ""),
-                    "legal_entity": i.get("legal_entity", ""),
+                    "masterPartyName": i.get("masterPartyName", ""),
+                    "dunsNumber": i.get("dunsNumber", ""),
                     "row_number": i.get("row_number", ""),
                     "status_code": response.status_code,
                     "response": response.json()
                 }
+
                 custom_logger.save_log_entry(log_entry)
 
                 # timeout of 3 seconds
@@ -88,6 +90,10 @@ def main():
 
     except Exception as e:
         print(f"Error: {e}")
+        custom_logger.stop_auto_flush()
+    
+    custom_logger.stop_auto_flush()
+
 
 if __name__ == "__main__":
     main()
