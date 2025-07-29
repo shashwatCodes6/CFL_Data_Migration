@@ -30,6 +30,7 @@ def send_payload(payload):
     headers = {
         'Content-Type': 'application/json',
         'Authorization': f"Bearer {auth_token}",
+        'Cookie': os.getenv("LE_PARTY_COOKIE"),
     }
     # Master Party API
     API_URL = os.getenv("LE_PARTY_URL")
@@ -63,6 +64,8 @@ def main():
                     "payload_number": idx + 1,
                     "masterParty": i.get("masterParty", ""),
                     "status_code": response.status_code,
+                    "response": response.json(),
+                    "row_number": i.get("row_number", [])
                 }
 
                 custom_logger.save_log_entry(log_entry)

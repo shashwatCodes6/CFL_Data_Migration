@@ -34,8 +34,6 @@ class MasterPartyPayload:
                 "phoneCode": country_details.get("phonecode", ""),
             }
 
-            logger.info("Master party: " + str(payload))
-
             payloads.append({
                 "payload": payload,
                 "row_number": record.get("row_number", ""),

@@ -120,8 +120,6 @@ class ARInvoice():
                 "locationCode": self._get_value(entry, "LOCATION")
             }
 
-            logger.info("AR Invoice: " + str(payload))
-
             payloads.append({
                 "payload": payload,
                 "legal_entity": self._get_value(entry, "LEGAL_ENTITY"),
