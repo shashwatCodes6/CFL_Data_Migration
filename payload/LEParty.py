@@ -85,7 +85,7 @@ class LEPartyPayload:
             "addressLine2": self.get_value(record, "Address Line 2", ""),
             "city": self._get_city_details(record),
             "state": self._get_state_details(record),
-            "country": self._get_country_details(record),
+            "country": self._get_country_details(record, "Country"),
             "postalCode": self.get_value(record, "Postal Code", ""),
             "activeStatus": self.get_value(record, "Address Active?", ""),
             "shipToSite": self.get_value(record, "Ship to flag", "false"),
@@ -131,11 +131,11 @@ class LEPartyPayload:
         except Exception as e:
             raise Exception(f"error while fetching state details for {state_iso2code}: {e}")
     
-    def _get_country_details(self, record):
-        iso2code = self.get_value(record, "Country", "")
-        if iso2code == "":
-                return country_details
+    def _get_country_details(self, record, field):
+        iso2code = self.get_value(record, field, "")
         country_details = {}
+        if iso2code == "":
+            return country_details
         try:
             country_details = fetch_country_details(iso2code)
             return {
@@ -172,7 +172,7 @@ class LEPartyPayload:
         }]
     
     def _get_bank_details(self, record):
-        return [{
+        res = {
             "id": None,
             "guid": None,
             "bankAccountName": self.get_value(record, "Bank Account Name", ""),
@@ -183,14 +183,12 @@ class LEPartyPayload:
             "ibanCode": self.get_value(record, "IBAN Code", ""),
             "defaultBank": self.get_value(record, "Bank Default", "false"),
             "activeStatus": self.get_value(record, "Bank Active?", "ACTIVE"),
-            "bankCountry": {
-                "id": "",
-                "name": "",
-                "iso2Code": self.get_value(record, "Bank Country", ""),
-                "iso3Code": "",
-                "phoneCode": ""
-            }
-        }]
+            "bankCountry": self._get_country_details(record, "Bank Country")
+        }
+
+
+
+        return [res]
     
     def _get_segment_details(self, record):
         if self.get_value(record, "Is party a segment", "false").lower() == "true":
